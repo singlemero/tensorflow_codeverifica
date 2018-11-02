@@ -39,3 +39,10 @@ print(s1.shape)
 s2 = s1[:,0,:]
 print(s2)
 print(s2.shape)
+
+
+vex = [[0.01,0.1,0.75,0.01],
+       [1e-2, 1e-2, 0.5, 1e-2],
+       [1e-2, 1e-1, 0.5, 1e-1]]
+c1, c2,c3,c4 = vex[0]
+print(c1, c2,c3,c4)

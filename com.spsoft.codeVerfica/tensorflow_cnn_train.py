@@ -77,8 +77,13 @@ Y = tf.placeholder(tf.float32, [None, MAX_LABEL*LABEL_LEN], name="Y")
 is_train = tf.placeholder(tf.bool, None, name="is_train")
 keep_prob = tf.placeholder(tf.float32, name="keep_prob") # dropout
 
+#w 权重,b 偏置量, keep_prob, stddev=学习率
+vex = [[0.01,0.1,0.75,0.01],
+       [1e-2, 1e-2, 0.5, 1e-2],
+       [1e-2, 1e-1, 0.5, 1e-1]]
+
 # 定义CNN
-def crack_captcha_cnn(w_alpha=0.01, b_alpha=0.1):
+def crack_captcha_cnn(w_alpha=0.01, b_alpha=0.1, keep=0.75, stddev = 0.01):
     # 将占位符 转换为 按照图片给的新样式
     x = tf.reshape(X, shape=[-1, IMG_HEIGHT, IMG_WIDTH, 1])
 
@@ -93,7 +98,7 @@ def crack_captcha_cnn(w_alpha=0.01, b_alpha=0.1):
     w_c1 = tf.Variable(w_alpha*tf.random_normal([3, 3, 1, 32])) # 从正太分布输出随机值
     b_c1 = tf.Variable(b_alpha*tf.random_normal([32]))
     conv1 = tf.nn.bias_add(tf.nn.conv2d(x, w_c1, strides=[1, 1, 1, 1], padding='SAME'), b_c1)
-    conv1 = batch_norm(conv1, tf.constant(0.0, shape=[32]), tf.random_normal(shape=[32], mean=1.0, stddev=0.02),is_train, scope='bn_1')
+    conv1 = batch_norm(conv1, tf.constant(0.0, shape=[32]), tf.random_normal(shape=[32], mean=1.0, stddev=0.005),is_train, scope='bn_1')
     conv1 = tf.nn.relu(conv1)
     conv1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     conv1 = tf.nn.dropout(conv1, keep_prob)
@@ -103,7 +108,7 @@ def crack_captcha_cnn(w_alpha=0.01, b_alpha=0.1):
     w_c2 = tf.Variable(w_alpha*tf.random_normal([3, 3, 32, 64]))
     b_c2 = tf.Variable(b_alpha*tf.random_normal([64]))
     conv2 = tf.nn.bias_add(tf.nn.conv2d(conv1, w_c2, strides=[1, 1, 1, 1], padding='SAME'), b_c2)
-    conv2 = batch_norm(conv2, tf.constant(0.0, shape=[64]), tf.random_normal(shape=[64], mean=1.0, stddev=0.02),is_train, scope='bn_2')
+    conv2 = batch_norm(conv2, tf.constant(0.0, shape=[64]), tf.random_normal(shape=[64], mean=1.0, stddev=0.005),is_train, scope='bn_2')
     conv2 = tf.nn.relu(conv2)
     conv2 = tf.nn.max_pool(conv2, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     conv2 = tf.nn.dropout(conv2, keep_prob)
@@ -112,7 +117,7 @@ def crack_captcha_cnn(w_alpha=0.01, b_alpha=0.1):
     w_c3 = tf.Variable(w_alpha*tf.random_normal([3, 3, 64, 64]))
     b_c3 = tf.Variable(b_alpha*tf.random_normal([64]))
     conv3 = tf.nn.bias_add(tf.nn.conv2d(conv2, w_c3, strides=[1, 1, 1, 1], padding='SAME'), b_c3)
-    conv3 = batch_norm(conv3, tf.constant(0.0, shape=[64]), tf.random_normal(shape=[64], mean=1.0, stddev=0.02),is_train, scope='bn_3')
+    conv3 = batch_norm(conv3, tf.constant(0.0, shape=[64]), tf.random_normal(shape=[64], mean=1.0, stddev=0.005),is_train, scope='bn_3')
     conv3 = tf.nn.relu(conv3)
     conv3 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     conv3 = tf.nn.dropout(conv3, keep_prob)
@@ -135,6 +140,10 @@ def crack_captcha_cnn(w_alpha=0.01, b_alpha=0.1):
 
     w_out = tf.Variable(w_alpha*tf.random_normal([1024, MAX_LABEL*LABEL_LEN]))
     b_out = tf.Variable(b_alpha*tf.random_normal([MAX_LABEL*LABEL_LEN]))
+
+    tf.summary.histogram("weight", w_out)
+    tf.summary.histogram("bias", b_out)
+
     out = tf.add(tf.matmul(dense, w_out), b_out)
     #out = tf.nn.softmax(out)
     return out
@@ -272,7 +281,8 @@ trainList = get_image_and_tensor(train_path)
 verfifyList = get_image_and_tensor(valid_path)
 # 训练
 def train_crack_captcha_cnn():
-    output = crack_captcha_cnn(1e-2, 1e-1)
+    #output = crack_captcha_cnn(1e-3, 1e-3)
+    output = crack_captcha_cnn()
     #output = train_vgg16()
     #loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(output, Y))
     # loss = -tf.reduce_sum(Y * tf.log(output))
@@ -283,7 +293,7 @@ def train_crack_captcha_cnn():
 
 
 
-    predict = tf.reshape(output, [-1, MAX_LABEL, LABEL_LEN])
+    predict = tf.reshape(output, [-1, MAX_LABEL, LABEL_LEN],name="predict")
     max_idx_p = tf.argmax(predict, 2)
     max_idx_l = tf.argmax(tf.reshape(Y, [-1, MAX_LABEL, LABEL_LEN]), 2)
     correct_pred = tf.equal(max_idx_p, max_idx_l)
@@ -317,7 +327,7 @@ def train_crack_captcha_cnn():
             #output = sess.run([ output], feed_dict={X: batch_x, Y: batch_y, keep_prob: 0.5, is_train:True})
             #print("out", step, output)
             _, loss_ , summary = sess.run([optimizer, loss, merged], feed_dict={X: batch_x, Y: batch_y, keep_prob: 0.5, is_train: True})
-            print("loss", step, loss_)
+            #print("第{0}次，损失率{1}".format(step, loss_))
 
             writer.add_summary(summary, step)
             # 每100 step计算一次准确率
@@ -325,10 +335,10 @@ def train_crack_captcha_cnn():
             if step % 100 == 0 :
                 batch_x_test, batch_y_test = get_next_batch(verfifyList,100)
                 acc, = sess.run([accuracy], feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1., is_train: False})
-                print("第{0}次，准确率{1}".format(step, acc))
+                print("第{0}次，准确率{1}, 损失率{2}".format(step, acc, loss_))
                 tf.summary.scalar('accuracy', acc)
                 # 如果准确率大于50%,保存模型,完成训练
-                if acc > 0.9 or step > 2000:
+                if acc > 0.9 or step >= 2000:
                     saver.save(sess, "./crack_capcha.model", global_step=step)
                     break
             step += 1
