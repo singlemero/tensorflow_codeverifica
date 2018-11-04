@@ -2,6 +2,8 @@ import tensorflow as tf
 import os
 import numpy as np
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import datetime
+import time
 
 input_data = tf.Variable(np.random.rand(10, 15, 40, 1), dtype=np.float32)
 filter_data = tf.Variable(np.random.rand(3, 3, 1, 32), dtype=np.float32)
@@ -10,11 +12,21 @@ y = tf.nn.convolution(input_data, filter_data, strides=[1, 1], padding='SAME')
 CNN1 = tf.nn.max_pool(y, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 init_op = tf.global_variables_initializer()
+print(1e-3)
+
+for i in range(2):
+    print(i)
 
 print('1. tf.nn.convolution : ', y)
 
 print('1. tf.nn.max_pool : ', CNN1)
 
+st = time.clock()
+time.sleep(3)
+def getTime(starttime):
+    return time.clock() - starttime
+
+print(getTime(st))
 #help(CNN1)
 
 
