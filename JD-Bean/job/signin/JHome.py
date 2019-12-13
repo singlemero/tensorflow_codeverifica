@@ -35,7 +35,8 @@ class Home(JdPlayer):
                         ]
             for job in myjobs:
                 self.to_page(job.job_url)
-                job.play_job()
+                if not job.is_play():
+                    job.play_job()
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
@@ -54,33 +55,70 @@ class Paipai(JdPlayer):
         super().__init__(broswer)
 
     def play(self):
-        self.logger.info(self.job_name)
+        # self.logger.info(self.job_name)
         try:
             icons = WebDriverWait(self.driver, 15).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, u"div[data-src]"))
             )
             if len(icons) == 2:
                 webdriver.ActionChains(self.driver).move_to_element(icons[1]).click(icons[1]).perform()
-                time.sleep(2)
+                time.sleep(3)
                 sign = WebDriverWait(self.driver, 15).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
                 )
-                sign.click()
+                if not "连续签到" in sign.text:
+                    sign.click()
                 # webdriver.ActionChains(self.driver).move_to_element(sign).click(sign).perform()
-                time.sleep(2)
+
+                    WebDriverWait(self.driver, 5).until(
+                        EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close"))
+                    )
+                else:
+                    self.logger.info("{}已签到".format(self.job_name))
+                # time.sleep(3)
                 self.job_success = True
         except Exception as e:
             self.logger.exception(e)
-            # self.driver.quit()
-
-            # time.sleep(60000)
-        self.logger.info("{} finish!".format(self.job_name))
 
     def is_play(self):
         icons = WebDriverWait(self.driver, 15).until(
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, u"div[data-src]"))
         )
         return len(icons) == 1
+
+
+class Block(JdPlayer):
+    job_name = "各品类分馆"
+
+    sign_btn = ".signIn_btnTxt"
+
+    sing_close = ".signIn_Close_icon"
+
+    def __init__(self, broswer: MobileBroswer):
+        super().__init__(broswer)
+
+    def play(self):
+        self.logger.info(self.job_name)
+        try:
+            sign = self.get_sign_btn()
+            sign.click()
+            close_modal = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, self.sing_close))
+            )
+            self.job_success = True
+        except Exception as e:
+            self.logger.exception(e)
+            # self.driver.quit()
+        self.logger.info("{} finish!".format(self.job_name))
+
+    def get_sign_btn(self):
+        return WebDriverWait(self.driver, 15).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, self.sign_btn))
+        )
+
+    def is_play(self):
+        sign = self.get_sign_btn()
+        return "连续签到" in sign.text
 
 
 class Clock(JdPlayer):
@@ -98,7 +136,10 @@ class Clock(JdPlayer):
                 EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_bg"))
             )
             sign.click()
-            time.sleep(2)
+            close_modal = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
+            )
+            # time.sleep(2)
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
@@ -123,7 +164,10 @@ class Life(JdPlayer):
                 EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
             )
             sign.click()
-            time.sleep(2)
+            close_modal = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
+            )
+            # time.sleep(2)
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
@@ -146,10 +190,12 @@ class Cosmetics(JdPlayer):
         self.logger.info(self.job_name)
         try:
             sign = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, u".search_icon_3"))
+                EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
             )
             sign.click()
-            time.sleep(2)
+            close_modal = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
+            )
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
@@ -175,7 +221,9 @@ class Pet(JdPlayer):
                 EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
             )
             sign.click()
-            time.sleep(2)
+            close_modal = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
+            )
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
@@ -201,7 +249,9 @@ class Monther(JdPlayer):
                 EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
             )
             sign.click()
-            time.sleep(2)
+            close_modal = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
+            )
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
@@ -231,7 +281,7 @@ class Roll(JdPlayer):
                 webdriver.ActionChains(self.driver).move_to_element(sign).click(sign).perform()
                 time.sleep(6)
                 modal = WebDriverWait(self.driver, 15).until(
-                    EC.visibility_of_element_located((By.CSS_SELECTOR, u".rewardBoxBot.J_ping"))
+                    EC.visibility_of_element_located((By.CSS_SELECTOR, u".common-popup-close"))
                 )
                 webdriver.ActionChains(self.driver).move_to_element(modal).click(modal).perform()
                 time.sleep(1)
