@@ -10,7 +10,6 @@ def run():
     broswer = MobileBroswer(chrome_path)
 
     for job_class in jobs:
-        print(job_class)
         job = job_class(broswer)
         try:
             job.run()

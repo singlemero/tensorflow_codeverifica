@@ -24,8 +24,9 @@ class Bean(JdPlayer):
 
     def play(self):
         try:
-            myjobs = [ BeanSign(self.broswer),
-                       ViewGoods1(self.broswer),
+            myjobs = [
+                # BeanSign(self.broswer),
+                #        ViewGoods1(self.broswer),
                        ViewGoods2(self.broswer)]
             for job in myjobs:
                 self.to_page(job.job_url)
@@ -94,12 +95,12 @@ class ViewGoods1(JdPlayer):
             if len(elements) > index:
 
                 self.__close_modal()
-
-                webdriver.ActionChains(self.driver).move_to_element(elements[index]).click(elements[index]).perform()
+                self.driver.execute_script(script='$(".index_list_banner").eq({}).click()'.format(index))
+                # webdriver.ActionChains(self.driver).move_to_element(elements[index]).click(elements[index]).perform()
                 # elements[index].click()
                 # 等待跳转
-                time.sleep(3)
-                section = WebDriverWait(self.driver, 20).until(
+                time.sleep(5)
+                section = WebDriverWait(self.driver, 10).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, u"section"))
                 )
                 print(section)
@@ -108,13 +109,16 @@ class ViewGoods1(JdPlayer):
                     if div.text and "无法重复领取" in div.text:
                         return True
                 # time.sleep(15)
-                icon = WebDriverWait(self.driver, 15).until(
-                    EC.text_to_be_present_in_element((By.CSS_SELECTOR, u"section"), "领取")
+                present = WebDriverWait(self.driver, 15).until(
+                    EC.text_to_be_present_in_element((By.CSS_SELECTOR, u"section div div i:last-child"), "领取")
                 )
-                webdriver.ActionChains(self.driver).move_to_element(icon).click(icon).perform()
+                if present:
+                    pick = self.driver.find_element_by_css_selector("section div div i:last-child")
+                    # self.driver.execute_script(script='$("section div div i:last-child").click()')
+                    webdriver.ActionChains(self.driver).move_to_element(pick).click(pick).perform()
                 # self.driver.find_element_by_css_selector("section div div i:last-child")
                 # self.driver.execute_script('$("section div div i:last-child").click()')
-                time.sleep(1)
+                time.sleep(3)
                 # for elem in self.driver.find_elements_by_css_selector("section div div i:last-child"):
                 #     elem.click()
             # 转到任务页面
@@ -168,15 +172,29 @@ class ViewGoods2(JdPlayer):
 
 
 
+    def get_view_btn(self):
+        elements = self.driver.find_elements(By.CSS_SELECTOR, "section")
+        btn = elements[-1].find_element(By.CSS_SELECTOR, "div div i:last-child")
+        count = 0
+        while "领取" != btn.text and count < 3:
+            if "赚更多钱" == btn.text:
+                break
+            elements = self.driver.find_elements(By.CSS_SELECTOR, "section")
+            btn = elements[-1].find_element(By.CSS_SELECTOR, "div div i:last-child")
+            count = count + 1
+        return btn
+
     def __view_adv(self) -> bool:
         try:
-            elements = self.driver.find_elements(By.CSS_SELECTOR, "section")
-            elem = elements[-1].find_elements_by_css_selector("div div i:last-child")
-            for el in elem:
-                el.click()
-            # 转到任务页面
-            self.driver.get(self.job_url)
-            return True
+            btn = self.get_view_btn()
+            if "赚更多钱" != btn.text:
+                # btn.click()
+                webdriver.ActionChains(self.driver).move_to_element(btn).click(btn).perform()
+                time.sleep(1)
+                # 因为就在此页面，不用休眠，
+                # 转到任务页面
+                self.to_page(self.job_url)
+                return True
         except Exception as e:
             self.logger.exception(e)
             return False

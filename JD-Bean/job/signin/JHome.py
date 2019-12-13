@@ -37,6 +37,8 @@ class Home(JdPlayer):
                 self.to_page(job.job_url)
                 if not job.is_play():
                     job.play_job()
+                else:
+                    self.logger.info("{}已执行过了".format(job.job_name))
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
@@ -55,7 +57,6 @@ class Paipai(JdPlayer):
         super().__init__(broswer)
 
     def play(self):
-        # self.logger.info(self.job_name)
         try:
             icons = WebDriverWait(self.driver, 15).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, u"div[data-src]"))
@@ -92,7 +93,7 @@ class Block(JdPlayer):
 
     sign_btn = ".signIn_btnTxt"
 
-    sing_close = ".signIn_Close_icon"
+    sing_close = ".signIn_popBoxFront"
 
     def __init__(self, broswer: MobileBroswer):
         super().__init__(broswer)
@@ -102,54 +103,47 @@ class Block(JdPlayer):
         try:
             sign = self.get_sign_btn()
             sign.click()
-            close_modal = WebDriverWait(self.driver, 5).until(
+            # webdriver.ActionChains(self.driver).move_to_element(sign).click(sign).perform()
+            WebDriverWait(self.driver, 5).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, self.sing_close))
             )
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
             # self.driver.quit()
-        self.logger.info("{} finish!".format(self.job_name))
+        # self.logger.info("{} finish!".format(self.job_name))
 
     def get_sign_btn(self):
-        return WebDriverWait(self.driver, 15).until(
+        btn = WebDriverWait(self.driver, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, self.sign_btn))
         )
+        count = 0
+        while btn.text == "" and count < 3:
+            btn = WebDriverWait(self.driver, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, self.sign_btn))
+            )
+            count = count + 1
+        return btn
 
     def is_play(self):
         sign = self.get_sign_btn()
         return "连续签到" in sign.text
 
 
-class Clock(JdPlayer):
+class Clock(Block):
     job_name = "钟表馆"
 
     job_url = "https://pro.m.jd.com/mall/active/2BcJPCVVzMEtMUynXkPscCSsx68W/index.html"
 
+    sign_btn = ".signIn_bg"
+
     def __init__(self, broswer: MobileBroswer):
         super().__init__(broswer)
-
-    def play(self):
-        self.logger.info(self.job_name)
-        try:
-            sign = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_bg"))
-            )
-            sign.click()
-            close_modal = WebDriverWait(self.driver, 5).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
-            )
-            # time.sleep(2)
-            self.job_success = True
-        except Exception as e:
-            self.logger.exception(e)
-            # self.driver.quit()
-        self.logger.info("{} finish!".format(self.job_name))
 
     def is_play(self):
         return False
 
-class Life(JdPlayer):
+class Life(Block):
     job_name = "生活馆"
 
     job_url = "https://pro.m.jd.com/mall/active/2C4Az1JUCWN8f3Y6xaxHbzTLkUzC/index.html"
@@ -157,28 +151,9 @@ class Life(JdPlayer):
     def __init__(self, broswer: MobileBroswer):
         super().__init__(broswer)
 
-    def play(self):
-        self.logger.info(self.job_name)
-        try:
-            sign = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
-            )
-            sign.click()
-            close_modal = WebDriverWait(self.driver, 5).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
-            )
-            # time.sleep(2)
-            self.job_success = True
-        except Exception as e:
-            self.logger.exception(e)
-            # self.driver.quit()
-        self.logger.info("{} finish!".format(self.job_name))
-
-    def is_play(self):
-        return False
 
 
-class Cosmetics(JdPlayer):
+class Cosmetics(Block):
     job_name = "美妆个护"
 
     job_url = "https://pro.m.jd.com/mall/active/NJ1kd1PJWhwvhtim73VPsD1HwY3/index.html"
@@ -189,24 +164,20 @@ class Cosmetics(JdPlayer):
     def play(self):
         self.logger.info(self.job_name)
         try:
-            sign = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
+            sign = WebDriverWait(self.driver, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btn"))
             )
             sign.click()
-            close_modal = WebDriverWait(self.driver, 5).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
+            # webdriver.ActionChains(self.driver).move_to_element(sign).click(sign).perform()
+            WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, self.sing_close))
             )
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
-            # self.driver.quit()
-        self.logger.info("{} finish!".format(self.job_name))
-
-    def is_play(self):
-        return False
 
 
-class Pet(JdPlayer):
+class Pet(Block):
     job_name = "宠物馆"
 
     job_url = "https://pro.m.jd.com/mall/active/3GCjZzanFWbJEU4xYEjqfPfovokM/index.html"
@@ -214,27 +185,9 @@ class Pet(JdPlayer):
     def __init__(self, broswer: MobileBroswer):
         super().__init__(broswer)
 
-    def play(self):
-        self.logger.info(self.job_name)
-        try:
-            sign = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
-            )
-            sign.click()
-            close_modal = WebDriverWait(self.driver, 5).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
-            )
-            self.job_success = True
-        except Exception as e:
-            self.logger.exception(e)
-            # self.driver.quit()
-        self.logger.info("{} finish!".format(self.job_name))
-
-    def is_play(self):
-        return False
 
 
-class Monther(JdPlayer):
+class Monther(Block):
     job_name = "母婴馆"
 
     job_url = "https://pro.m.jd.com/mall/active/bVs9EG4MMK4zKdqVt86UFABX2en/index.html"
@@ -242,24 +195,6 @@ class Monther(JdPlayer):
     def __init__(self, broswer: MobileBroswer):
         super().__init__(broswer)
 
-    def play(self):
-        self.logger.info(self.job_name)
-        try:
-            sign = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btnTxt"))
-            )
-            sign.click()
-            close_modal = WebDriverWait(self.driver, 5).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, u".signIn_Close_icon"))
-            )
-            self.job_success = True
-        except Exception as e:
-            self.logger.exception(e)
-            # self.driver.quit()
-        self.logger.info("{} finish!".format(self.job_name))
-
-    def is_play(self):
-        return False
 
 
 class Roll(JdPlayer):
@@ -276,12 +211,12 @@ class Roll(JdPlayer):
             sign = WebDriverWait(self.driver, 15).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, u".rewardBoxBot.J_ping"))
             )
-            while "摇一摇" in sign.text:
+            while not "花费" in sign.text:
                 # sign.click()
                 webdriver.ActionChains(self.driver).move_to_element(sign).click(sign).perform()
                 time.sleep(6)
                 modal = WebDriverWait(self.driver, 15).until(
-                    EC.visibility_of_element_located((By.CSS_SELECTOR, u".common-popup-close"))
+                    EC.visibility_of_element_located((By.CSS_SELECTOR, u".common-popup-content"))
                 )
                 webdriver.ActionChains(self.driver).move_to_element(modal).click(modal).perform()
                 time.sleep(1)
@@ -295,7 +230,10 @@ class Roll(JdPlayer):
         self.logger.info("{} finish!".format(self.job_name))
 
     def is_play(self):
-        return False
+        sign = WebDriverWait(self.driver, 15).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, u".rewardBoxBot.J_ping"))
+        )
+        return "花费" in sign.text
 
 
 class PinGou(JdPlayer):
@@ -307,9 +245,8 @@ class PinGou(JdPlayer):
         super().__init__(broswer)
 
     def play(self):
-        # self.logger.info(self.job_name)
         try:
-            modal = WebDriverWait(self.driver, 15).until(
+            modal = WebDriverWait(self.driver, 5).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, u".modal_close"))
             )
             webdriver.ActionChains(self.driver).move_to_element(modal).click(modal).perform()
@@ -317,7 +254,6 @@ class PinGou(JdPlayer):
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
-            # self.driver.quit()
         self.logger.info("{} finish!".format(self.job_name))
 
     def is_play(self):

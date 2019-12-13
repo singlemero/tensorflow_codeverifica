@@ -33,6 +33,7 @@ class JdPlayer:
         try:
             self.logger.info('Job Start: {}'.format(self.job_name))
             self.play()
+            self.logger.info('{} Finish!'.format(self.job_name))
         except Exception as e:
             self.logger.error("Job {} Exception!".format(self.job_name))
             self.logger.exception(e)
