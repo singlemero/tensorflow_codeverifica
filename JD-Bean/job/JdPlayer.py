@@ -1,5 +1,8 @@
 import time
 
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from job.JdBroswer import MobileBroswer
 from job.log import Jlog
 
@@ -51,7 +54,17 @@ class JdPlayer:
 
     def is_play(self) -> bool:
         """任务是否已执行"""
-        return True
+        return self.page_found()
+
+    def page_found(self):
+        try:
+            visible = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, u".error-module"))
+            )
+            return visible
+        except Exception as e:
+            # self.logger.exception(e)
+            return False
 
 
 

@@ -75,13 +75,13 @@ class MobileBroswer():
                 self.logger.info("未登录!")
                 # return True
                 roll_times = 0
-                while self.driver.current_url != job_url and roll_times < 200:
+                while job_url not in self.driver.current_url and roll_times < 200:
                     # print(driver.current_url)
                     # print(roll_times)
                     time.sleep(5)
                     roll_times = roll_times + 1
 
-                if self.driver.current_url != job_url:
+                if job_url not in self.driver.current_url:
                     self.logger.error("超时未登录!")
                 else:
                     login_success = True

@@ -44,8 +44,8 @@ class Home(JdPlayer):
             self.logger.exception(e)
             self.driver.quit()
 
-    def is_play(self):
-        return False
+    # def is_play(self):
+    #     return False
 
 
 class Paipai(JdPlayer):
@@ -125,9 +125,9 @@ class Block(JdPlayer):
             count = count + 1
         return btn
 
-    def is_play(self):
-        sign = self.get_sign_btn()
-        return "连续签到" in sign.text
+    # def is_play(self):
+    #     sign = self.get_sign_btn()
+    #     return "连续签到" in sign.text
 
 
 class Clock(Block):
@@ -167,7 +167,8 @@ class Cosmetics(Block):
             sign = WebDriverWait(self.driver, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, u".signIn_btn"))
             )
-            sign.click()
+            self.driver.execute_script('$(".signIn_btn").click()')
+            # sign.click()
             # webdriver.ActionChains(self.driver).move_to_element(sign).click(sign).perform()
             WebDriverWait(self.driver, 5).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, self.sing_close))
@@ -175,6 +176,8 @@ class Cosmetics(Block):
             self.job_success = True
         except Exception as e:
             self.logger.exception(e)
+
+
 
 
 class Pet(Block):
@@ -215,13 +218,15 @@ class Roll(JdPlayer):
                 # sign.click()
                 webdriver.ActionChains(self.driver).move_to_element(sign).click(sign).perform()
                 time.sleep(6)
-                modal = WebDriverWait(self.driver, 15).until(
-                    EC.visibility_of_element_located((By.CSS_SELECTOR, u".common-popup-content"))
-                )
-                webdriver.ActionChains(self.driver).move_to_element(modal).click(modal).perform()
+                # modal = self.driver.find_element_by_css_selector(".common-popup-close")
+                # modal = WebDriverWait(self.driver, 15).until(
+                #     EC.visibility_of_element_located((By.CSS_SELECTOR, u".common-popup-content"))
+                # )
+                self.driver.execute_script('$(".common-popup-close").click()')
+                # webdriver.ActionChains(self.driver).move_to_element(modal).click(modal).perform()
                 time.sleep(1)
-                sign = WebDriverWait(self.driver, 15).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, u".rewardBoxBot.J_ping"))
+                sign = WebDriverWait(self.driver, 10).until(
+                    EC.visibility_of_element_located((By.CSS_SELECTOR, u".rewardBoxBot.J_ping"))
                 )
             self.job_success = True
         except Exception as e:

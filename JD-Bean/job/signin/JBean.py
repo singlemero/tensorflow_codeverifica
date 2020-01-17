@@ -25,8 +25,8 @@ class Bean(JdPlayer):
     def play(self):
         try:
             myjobs = [
-                # BeanSign(self.broswer),
-                #        ViewGoods1(self.broswer),
+                BeanSign(self.broswer),
+                       ViewGoods1(self.broswer),
                        ViewGoods2(self.broswer)]
             for job in myjobs:
                 self.to_page(job.job_url)
@@ -109,9 +109,7 @@ class ViewGoods1(JdPlayer):
                     if div.text and "无法重复领取" in div.text:
                         return True
                 # time.sleep(15)
-                present = WebDriverWait(self.driver, 15).until(
-                    EC.text_to_be_present_in_element((By.CSS_SELECTOR, u"section div div i:last-child"), "领取")
-                )
+                present = self.is_btn_present()
                 if present:
                     pick = self.driver.find_element_by_css_selector("section div div i:last-child")
                     # self.driver.execute_script(script='$("section div div i:last-child").click()')
@@ -127,6 +125,23 @@ class ViewGoods1(JdPlayer):
         except Exception as e:
             self.logger.exception(e)
             return False
+
+    def is_btn_present(self):
+        present = False
+        times = 0
+        while not present and times < 3:
+            try:
+                times = times + 1
+                present = WebDriverWait(self.driver, 5).until(
+                    EC.text_to_be_present_in_element((By.CSS_SELECTOR, u"section div div i:last-child"), "领取")
+                )
+                # present = WebDriverWait(self.driver, 5).until(
+                #     EC.text_to_be_present_in_element((By.CSS_SELECTOR, u"section div div i:last-child"), "赚更多钱")
+                # )
+            except Exception as e:
+                self.logger.warning("找不到页面元素{}".format("section div div i:last-child"))
+                self.logger.exception(e)
+        return present
 
     def __close_modal(self):
         """关闭遮罩"""

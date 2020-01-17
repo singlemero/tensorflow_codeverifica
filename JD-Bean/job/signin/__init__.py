@@ -7,7 +7,7 @@ from .JLike import Like
 jobs_all = [Like, Home, Bean, Coin, Order]
 
 # jobs_minus = [Coin, Order, Bean, Home]
-jobs_minus = [Order,Like, Home,Coin]
+jobs_minus = [Order]
 
 jobs = [item for item in jobs_all if item not in jobs_minus]
 
